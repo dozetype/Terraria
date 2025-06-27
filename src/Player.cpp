@@ -39,6 +39,8 @@ bool Player::getGrounded() { return grounded; }
 
 void Player::setGrounded(const bool status) { grounded = status; }
 
-Rectangle Player::getRec() const { return {pos.x, pos.y, 16, 16}; }
+Rectangle Player::getRec() const { return {pos.x, pos.y, 10, 10}; }
 
 Vector2 Player::getPos() const { return pos; }
+
+float Player::getYvel() { return vel.y; }

@@ -22,6 +22,7 @@ public:
     void setGrounded(bool status);
     Rectangle getRec() const;
     Vector2 getPos() const;
+    float getYvel();
 private:
     Vector2 vel;
     Vector2 pos;

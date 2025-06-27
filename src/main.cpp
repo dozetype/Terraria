@@ -34,6 +34,8 @@ public:
     void update() {
         player.setXVel(0);
         player.setYVel(1);
+
+        std::cout << "GROUND: "<<player.getGrounded()<<"    VEL: "<<player.getYvel() << std::endl;
         handleInput();
         checkForCollisions();
         player.update();
@@ -52,7 +54,10 @@ public:
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) { player.moveLeft(); }
         else if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) { player.moveRight(); }
 
-        if (IsKeyPressed(KEY_SPACE)) { player.moveJump(); }
+        if (player.getGrounded() && IsKeyPressed(KEY_SPACE)) {
+            player.moveJump();
+            player.setGrounded(false);
+        }
     }
 
     void addBlock(std::shared_ptr<Tile> block) {
@@ -109,7 +114,7 @@ public:
         const int startY = playerRec.y;
         const int endY   = playerRec.y + playerRec.height;
 
-        int radius = 40;
+        int radius = 16;
 
         for (int y=startY-radius; y<=endY+radius; y+=8) {
             for (int x=startX-radius; x<=endX+radius; x+=8) {
@@ -122,7 +127,6 @@ public:
                 int tileY = y / TILE_SIZE;
                 int index = tileY * (MAP_X / TILE_SIZE) + tileX;
                 auto& tile = tiles[index];
-                std::cout << tile << std::endl;
                 if (tile && CheckCollisionRecs(playerRec, tile->getRec())) {
                     float dx = (playerRec.x + playerRec.width / 2) - (tile->getX() + 8 / 2);
                     float dy = (playerRec.y + playerRec.height / 2) - (tile->getY() + 8 / 2);
@@ -135,13 +139,13 @@ public:
                         num += playerRec.x;
                         player.setXPos(num);
                     } else {
+                        player.setGrounded(true);
                         num = (dy < 0) ? -overlapY : overlapY;
                         num += playerRec.y;
                         player.setYPos(num);
                     }
                 }
-                // if (tile) tile->update();
-                DrawRectangle(x+5, y+5, 3, 3, YELLOW);
+                // DrawRectangle(x+5, y+5, 3, 3, RED);
             }
         }
     }
@@ -162,7 +166,7 @@ int main() {
     SetTargetFPS(60);
     Game game;
     Camera2D camera = { 0 };
-    camera.zoom = 1.0f;
+    camera.zoom = 2.0f;
     camera.offset = { windowWidth / 2.0f, windowHeight / 2.0f };
 
     TextureManager::loadTexture("dirt1", "images/dirt1.png");
@@ -173,13 +177,13 @@ int main() {
     while (!WindowShouldClose()) {
         SetWindowTitle(("FPS: " + std::to_string(GetFPS())).c_str());
         // std::cout << GetFPS() << std::endl;
+        game.update();
         camera.target = game.getPlayer().getPos();
 
         BeginDrawing();
         BeginMode2D(camera);
         ClearBackground(background);
 
-        game.update();
         game.draw();
 
         EndMode2D();
