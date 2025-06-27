@@ -49,8 +49,10 @@ public:
 
     void draw() {
         player.draw();
-        for (auto& block: tiles) {
-            block->draw();
+        for (auto& tile: tiles) {
+            if (tile) {
+                tile->draw();
+            }
         }
     }
 
@@ -67,25 +69,41 @@ public:
     }
 
     void renderMap() {
-        constexpr Vector2 mapSize{MAP_X, MAP_Y};
-        const Vector2 startingPt{0,300};
-        const Image noiseImg = GenImagePerlinNoise(
-            static_cast<int>(mapSize.x),
-            static_cast<int>(mapSize.y),
-            0, 0, 8.0f);
+        constexpr int columns = MAP_X / TILE_SIZE;
+        constexpr int rows = MAP_Y / TILE_SIZE;
+        std::vector<int> heightMap(columns);
+        // NOISE1: MAP NOISE
+        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 3.0f);
         Color* pixels = LoadImageColors(noiseImg);
+        // NOISE2: HEIGHT NOISE
+        Image noiseImg2 = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 8.f); //INCREASE FOR SPARSITY
+        Color* pixels2 = LoadImageColors(noiseImg2);
 
-        for (int y=0; y<mapSize.y/TILE_SIZE; y++) {
-            for (int x=0; x<mapSize.x/TILE_SIZE; x++) {
-                Color color = pixels[y * static_cast<int>(mapSize.x) + x];
-                float brightness = color.r / 255.0f;
-                Vector2 pos{startingPt.x+x*TILE_SIZE, startingPt.y+y*TILE_SIZE};
-                if (brightness < 0.4f || y==0) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
-                else { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
+        for (int x = 0; x < columns; x++) {
+            heightMap[x] = pixels2[x].r/3 + 10;
+        }
+
+        int counter{};
+        for (int y=0; y<rows; y++) {
+            for (int x=0; x<columns; x++) {
+                if (y > heightMap[x]) {
+                    Color colour = pixels[y * static_cast<int>(MAP_X) + x];
+                    float brightness = colour.r; //0-255
+                    Vector2 pos{static_cast<float>(x*TILE_SIZE), static_cast<float>(y*TILE_SIZE)};
+                    if (brightness < 50) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
+                    else{ addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
+                }
+                else {
+                    addBlock(nullptr);
+                    counter++;
+                }
             }
         }
+        std::cout<<"TOTAL TILES: "<<tiles.size()<<"\n"<<"EMPTY SPACE: "<<counter<<std::endl;
         UnloadImage(noiseImg);
         UnloadImageColors(pixels);
+        UnloadImage(noiseImg2);
+        UnloadImageColors(pixels2);
     }
 
     // void checkForCollisions() {
