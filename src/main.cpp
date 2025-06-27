@@ -11,17 +11,11 @@ public:
         : pos(pos), image(image) {}
     // ~Block();
 
-    void draw() const {
-        DrawTextureV(image, pos, WHITE);
-    }
-
-    Texture2D getImage() const {
-        return image;
-    }
-
-    Rectangle getRec() const {
-        return {pos.x, pos.y, TILE_SIZE, TILE_SIZE};
-    }
+    void draw() const { DrawTextureV(image, pos, WHITE); }
+    Texture2D getImage() const { return image; }
+    Rectangle getRec() const { return {pos.x, pos.y, TILE_SIZE, TILE_SIZE}; }
+    int getX() const {return pos.x; }
+    int getY() const { return pos.y; }
 
 private:
     Vector2 pos;
@@ -32,9 +26,7 @@ class Dirt:public Tile {
 public:
     Dirt(const Vector2 pos, const Texture2D &image)
         :Tile(pos, image){}
-    ~Dirt() {
-        // std::cout << "removed" <<std::endl;
-    }
+    // ~Dirt() {}
 };
 
 class Game {
@@ -43,7 +35,7 @@ public:
         player.setXVel(0);
         player.setYVel(1);
         handleInput();
-        // checkForCollisions();
+        checkForCollisions();
         player.update();
     }
 
@@ -105,27 +97,54 @@ public:
         UnloadImageColors(pixels2);
     }
 
-    // void checkForCollisions() {
-    //     Rectangle playerRec = player.getRec();
-    //
-    //     int startX = playerRec.x / TILE_SIZE;
-    //     int endX   = (playerRec.x + playerRec.width) / TILE_SIZE;
-    //     int startY = playerRec.y / TILE_SIZE;
-    //     int endY   = (playerRec.y + playerRec.height) / TILE_SIZE;
-    //
-    //     for (int y = startY; y <= endY; ++y) {
-    //         for (int x = startX; x <= endX; ++x) {
-    //             int index = y*TILE_SIZE + x;
-    //             if (tiles[index]) { //CHECK IF TILE EXIST
-    //                 Rectangle tileRec = tiles[index]->getRec();
-    //                 if (CheckCollisionRecs(playerRec, tileRec)) {
-    //                     player.
-    //                 }
-    //             }
-    //         }
-    //     }
+    Player& getPlayer() {
+        return player;
+    }
 
-    // }
+    void checkForCollisions() {
+        Rectangle playerRec = player.getRec();
+
+        const int startX = playerRec.x;
+        const int endX   = playerRec.x + playerRec.width;
+        const int startY = playerRec.y;
+        const int endY   = playerRec.y + playerRec.height;
+
+        int radius = 40;
+
+        for (int y=startY-radius; y<=endY+radius; y+=8) {
+            for (int x=startX-radius; x<=endX+radius; x+=8) {
+                if (x<0 || y<0 || x>=MAP_X || y>=MAP_Y) continue;
+                int dx = x - startX;
+                int dy = y - startY;
+                if (dx*dx + dy*dy > radius*radius){ continue; } // outside
+
+                int tileX = x / TILE_SIZE;
+                int tileY = y / TILE_SIZE;
+                int index = tileY * (MAP_X / TILE_SIZE) + tileX;
+                auto& tile = tiles[index];
+                std::cout << tile << std::endl;
+                if (tile && CheckCollisionRecs(playerRec, tile->getRec())) {
+                    float dx = (playerRec.x + playerRec.width / 2) - (tile->getX() + 8 / 2);
+                    float dy = (playerRec.y + playerRec.height / 2) - (tile->getY() + 8 / 2);
+                    float overlapX = (playerRec.width / 2 + 8 / 2) - std::abs(dx);
+                    float overlapY = (playerRec.height / 2 + 8 / 2) - std::abs(dy);
+
+                    int num{};
+                    if (overlapX < overlapY) {
+                        num = (dx < 0) ? -overlapX : overlapX;
+                        num += playerRec.x;
+                        player.setXPos(num);
+                    } else {
+                        num = (dy < 0) ? -overlapY : overlapY;
+                        num += playerRec.y;
+                        player.setYPos(num);
+                    }
+                }
+                // if (tile) tile->update();
+                DrawRectangle(x+5, y+5, 3, 3, YELLOW);
+            }
+        }
+    }
 
 private:
     Player player;
@@ -144,6 +163,8 @@ int main() {
     Game game;
     Camera2D camera = { 0 };
     camera.zoom = 1.0f;
+    camera.offset = { windowWidth / 2.0f, windowHeight / 2.0f };
+
     TextureManager::loadTexture("dirt1", "images/dirt1.png");
     TextureManager::loadTexture("dirt2", "images/dirt2.png");
     game.renderMap();
@@ -152,12 +173,16 @@ int main() {
     while (!WindowShouldClose()) {
         SetWindowTitle(("FPS: " + std::to_string(GetFPS())).c_str());
         // std::cout << GetFPS() << std::endl;
+        camera.target = game.getPlayer().getPos();
+
         BeginDrawing();
         BeginMode2D(camera);
         ClearBackground(background);
 
         game.update();
         game.draw();
+
+        EndMode2D();
         EndDrawing();
     }
 

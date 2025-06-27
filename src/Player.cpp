@@ -21,34 +21,24 @@ void Player::update() {
     pos.y += vel.y;
 }
 
-void Player::moveLeft() {
-    vel.x -= 3;
-}
+void Player::moveLeft() { vel.x -= 3; }
 
-void Player::moveRight() {
-    vel.x += 3;
-}
+void Player::moveRight() { vel.x += 3; }
 
-void Player::moveJump() {
-    vel.y -= 20;
-}
+void Player::moveJump() { vel.y -= 20; }
 
-void Player::setYVel(const float num) {
-    vel.y = num;
-}
+void Player::setYVel(const float num) { vel.y = num; }
 
-void Player::setXVel(const float num) {
-    vel.x = num;
-}
+void Player::setXVel(const float num) { vel.x = num; }
 
-bool Player::getGrounded() {
-    return grounded;
-}
+void Player::setXPos(const int x) { pos.x = x; }
 
-void Player::setGrounded(const bool status) {
-    grounded = status;
-}
+void Player::setYPos(const int y) { pos.y = y; }
 
-Rectangle Player::getRec() const {
-    return {pos.x, pos.y, 16, 16};
-}
+bool Player::getGrounded() { return grounded; }
+
+void Player::setGrounded(const bool status) { grounded = status; }
+
+Rectangle Player::getRec() const { return {pos.x, pos.y, 16, 16}; }
+
+Vector2 Player::getPos() const { return pos; }
