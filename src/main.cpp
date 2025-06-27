@@ -7,7 +7,7 @@
 
 class Tile {
 public:
-    Tile(Vector2 pos, Texture2D image)
+    Tile(const Vector2 pos, const Texture2D &image)
         : pos(pos), image(image) {}
     // ~Block();
 
@@ -33,15 +33,14 @@ class Game {
 public:
     void update() {
         player.setXVel(0);
-        player.setYVel(1);
+        player.setYVel(2);
 
-        std::cout << "GROUND: "<<player.getGrounded()<<"    VEL: "<<player.getYvel() << std::endl;
         handleInput();
         checkForCollisions();
         player.update();
     }
 
-    void draw() {
+    void draw() const {
         player.draw();
         for (auto& tile: tiles) {
             if (tile) {
@@ -60,7 +59,7 @@ public:
         }
     }
 
-    void addBlock(std::shared_ptr<Tile> block) {
+    void addBlock(const std::shared_ptr<Tile> &block) {
         tiles.push_back(block);
     }
 
@@ -69,10 +68,10 @@ public:
         constexpr int rows = MAP_Y / TILE_SIZE;
         std::vector<int> heightMap(columns);
         // NOISE1: MAP NOISE
-        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 5.0f);
+        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 9.0f);
         Color* pixels = LoadImageColors(noiseImg);
         // NOISE2: HEIGHT NOISE
-        Image noiseImg2 = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 8.f); //INCREASE FOR SPARSITY
+        const Image noiseImg2 = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 8.f); //INCREASE FOR SPARSITY
         Color* pixels2 = LoadImageColors(noiseImg2);
 
         for (int x = 0; x < columns; x++) {
@@ -87,6 +86,7 @@ public:
                     float brightness = colour.r; //0-255
                     Vector2 pos{static_cast<float>(x*TILE_SIZE), static_cast<float>(y*TILE_SIZE)};
                     if (y==heightMap[x]) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
+                    else if (brightness < 60){ addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("stone"))); }
                     else if (brightness < 255){ addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
                 }
                 else {
@@ -166,11 +166,12 @@ int main() {
     SetTargetFPS(60);
     Game game;
     Camera2D camera = { 0 };
-    camera.zoom = 2.0f;
+    camera.zoom = 1.0f;
     camera.offset = { windowWidth / 2.0f, windowHeight / 2.0f };
 
     TextureManager::loadTexture("dirt1", "images/dirt1.png");
     TextureManager::loadTexture("dirt2", "images/dirt2.png");
+    TextureManager::loadTexture("stone", "images/stone.png");
     game.renderMap();
 
 

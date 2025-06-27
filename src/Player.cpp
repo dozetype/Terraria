@@ -25,7 +25,7 @@ void Player::moveLeft() { vel.x -= 3; }
 
 void Player::moveRight() { vel.x += 3; }
 
-void Player::moveJump() { vel.y -= 20; }
+void Player::moveJump() { vel.y -= 40; }
 
 void Player::setYVel(const float num) { vel.y = num; }
 
