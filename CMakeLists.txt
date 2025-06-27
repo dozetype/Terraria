@@ -7,17 +7,12 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(/opt/homebrew/include)
 link_directories(/opt/homebrew/lib)
 
-add_executable(Terraria main.cpp
-        player.cpp
-        player.h
-        game.cpp
-        game.h
-        block.cpp
-        block.h
-        dirt.cpp
-        dirt.h
-        TextureManager.cpp
-        TextureManager.h)
+add_executable(Terraria src/main.cpp
+        src/TextureManager.cpp
+        src/TextureManager.h
+        src/Player.cpp
+        src/Player.h
+)
 
 
 # Link raylib and its dependencies
