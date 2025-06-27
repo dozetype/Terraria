@@ -12,6 +12,7 @@ add_executable(Terraria src/main.cpp
         src/TextureManager.h
         src/Player.cpp
         src/Player.h
+        src/Constants.h
 )
 
 

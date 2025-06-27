@@ -1,12 +1,13 @@
 #include <iostream>
 #include <raylib.h>
 
+#include "Constants.h"
 #include "Player.h"
 #include "TextureManager.h"
 
-class Block {
+class Tile {
 public:
-    Block(Vector2 pos, Texture2D image)
+    Tile(Vector2 pos, Texture2D image)
         : pos(pos), image(image) {}
     // ~Block();
 
@@ -18,15 +19,19 @@ public:
         return image;
     }
 
+    Rectangle getRec() const {
+        return {pos.x, pos.y, TILE_SIZE, TILE_SIZE};
+    }
+
 private:
     Vector2 pos;
     Texture2D image;
 };
 
-class Dirt:public Block {
+class Dirt:public Tile {
 public:
     Dirt(const Vector2 pos, const Texture2D &image)
-        :Block(pos, image){}
+        :Tile(pos, image){}
     ~Dirt() {
         // std::cout << "removed" <<std::endl;
     }
@@ -35,13 +40,16 @@ public:
 class Game {
 public:
     void update() {
+        player.setXVel(0);
+        player.setYVel(0);
         handleInput();
-        // player.externalForce({0, gravity});
+        // checkForCollisions();
+        player.update();
     }
 
     void draw() {
         player.draw();
-        for (auto& block: blocks) {
+        for (auto& block: tiles) {
             block->draw();
         }
     }
@@ -54,25 +62,24 @@ public:
         }
     }
 
-    void addBlock(std::shared_ptr<Block> block) {
-        blocks.push_back(block);
+    void addBlock(std::shared_ptr<Tile> block) {
+        tiles.push_back(block);
     }
 
     void renderMap() {
-        const int width = 8;
+        constexpr Vector2 mapSize{MAP_X, MAP_Y};
         const Vector2 startingPt{0,300};
-        const Vector2 mapSize{100, 40};
-        Image noiseImg = GenImagePerlinNoise(
+        const Image noiseImg = GenImagePerlinNoise(
             static_cast<int>(mapSize.x),
             static_cast<int>(mapSize.y),
-            0, 0, 1.0f);
+            0, 0, 8.0f);
         Color* pixels = LoadImageColors(noiseImg);
 
-        for (int y=0; y<mapSize.y; y++) {
-            for (int x=0; x<mapSize.x; x++) {
+        for (int y=0; y<mapSize.y/TILE_SIZE; y++) {
+            for (int x=0; x<mapSize.x/TILE_SIZE; x++) {
                 Color color = pixels[y * static_cast<int>(mapSize.x) + x];
                 float brightness = color.r / 255.0f;
-                Vector2 pos{startingPt.x+x*width, startingPt.y+y*width};
+                Vector2 pos{startingPt.x+x*TILE_SIZE, startingPt.y+y*TILE_SIZE};
                 if (brightness < 0.4f || y==0) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
                 else { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
             }
@@ -81,10 +88,31 @@ public:
         UnloadImageColors(pixels);
     }
 
+    // void checkForCollisions() {
+    //     Rectangle playerRec = player.getRec();
+    //
+    //     int startX = playerRec.x / TILE_SIZE;
+    //     int endX   = (playerRec.x + playerRec.width) / TILE_SIZE;
+    //     int startY = playerRec.y / TILE_SIZE;
+    //     int endY   = (playerRec.y + playerRec.height) / TILE_SIZE;
+    //
+    //     for (int y = startY; y <= endY; ++y) {
+    //         for (int x = startX; x <= endX; ++x) {
+    //             int index = y*TILE_SIZE + x;
+    //             if (tiles[index]) { //CHECK IF TILE EXIST
+    //                 Rectangle tileRec = tiles[index]->getRec();
+    //                 if (CheckCollisionRecs(playerRec, tileRec)) {
+    //                     player.
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    // }
+
 private:
-    float gravity = 1;
     Player player;
-    std::vector<std::shared_ptr<Block>> blocks;
+    std::vector<std::shared_ptr<Tile>> tiles;
 };
 
 

@@ -1,16 +1,27 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include <raylib.h>
+#include "Constants.h"
 
 
 class Player {
 public:
+    Player();
+    ~Player();
     void draw() const;
+    // void externalForce(const Vector2 force);
+    void update();
     void moveLeft();
     void moveRight();
-    void externalForce(const Vector2 force);
+    void setYVel(float num);
+    void setXVel(float num);
+    bool getGrounded();
+    void setGrounded(bool status);
+    Rectangle getRec() const;
 private:
-    Vector2 pos = {static_cast<float>(GetScreenWidth()/2), static_cast<float>(GetScreenHeight()/2)};
+    Vector2 vel;
+    Vector2 pos;
+    bool grounded;
 };
 
 
