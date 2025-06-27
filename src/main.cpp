@@ -41,7 +41,7 @@ class Game {
 public:
     void update() {
         player.setXVel(0);
-        player.setYVel(0);
+        player.setYVel(1);
         handleInput();
         // checkForCollisions();
         player.update();
@@ -57,11 +57,10 @@ public:
     }
 
     void handleInput() {
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-            player.moveLeft();
-        }else if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-            player.moveRight();
-        }
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) { player.moveLeft(); }
+        else if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) { player.moveRight(); }
+
+        if (IsKeyPressed(KEY_SPACE)) { player.moveJump(); }
     }
 
     void addBlock(std::shared_ptr<Tile> block) {
@@ -73,7 +72,7 @@ public:
         constexpr int rows = MAP_Y / TILE_SIZE;
         std::vector<int> heightMap(columns);
         // NOISE1: MAP NOISE
-        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 3.0f);
+        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 5.0f);
         Color* pixels = LoadImageColors(noiseImg);
         // NOISE2: HEIGHT NOISE
         Image noiseImg2 = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 8.f); //INCREASE FOR SPARSITY
@@ -86,12 +85,12 @@ public:
         int counter{};
         for (int y=0; y<rows; y++) {
             for (int x=0; x<columns; x++) {
-                if (y > heightMap[x]) {
+                if (y >= heightMap[x]) {
                     Color colour = pixels[y * static_cast<int>(MAP_X) + x];
                     float brightness = colour.r; //0-255
                     Vector2 pos{static_cast<float>(x*TILE_SIZE), static_cast<float>(y*TILE_SIZE)};
-                    if (brightness < 50) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
-                    else{ addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
+                    if (y==heightMap[x]) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
+                    else if (brightness < 255){ addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
                 }
                 else {
                     addBlock(nullptr);

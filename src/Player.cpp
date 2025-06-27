@@ -12,7 +12,7 @@ Player::~Player() {
 }
 
 void Player::draw() const {
-    DrawCircle(pos.x, pos.y, 10, {255,255,255,255});
+    DrawRectangle(pos.x, pos.y, 10, 10, {255,255,255,255});
 }
 
 void Player::update() {
@@ -27,6 +27,10 @@ void Player::moveLeft() {
 
 void Player::moveRight() {
     vel.x += 3;
+}
+
+void Player::moveJump() {
+    vel.y -= 20;
 }
 
 void Player::setYVel(const float num) {

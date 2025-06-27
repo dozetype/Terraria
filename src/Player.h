@@ -13,6 +13,7 @@ public:
     void update();
     void moveLeft();
     void moveRight();
+    void moveJump();
     void setYVel(float num);
     void setXVel(float num);
     bool getGrounded();
