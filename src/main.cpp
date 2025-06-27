@@ -59,12 +59,26 @@ public:
     }
 
     void renderMap() {
-        int width = 8;
-        for (float i=0; i<GetScreenWidth()/width; i++) {
-            for (float j=0; j<GetScreenHeight()/2/width; j++) {
-                addBlock(std::make_shared<Dirt>(Vector2{i*width, j*width}, TextureManager::getTexture("dirt1")));
+        const int width = 8;
+        const Vector2 startingPt{0,300};
+        const Vector2 mapSize{100, 40};
+        Image noiseImg = GenImagePerlinNoise(
+            static_cast<int>(mapSize.x),
+            static_cast<int>(mapSize.y),
+            0, 0, 1.0f);
+        Color* pixels = LoadImageColors(noiseImg);
+
+        for (int y=0; y<mapSize.y; y++) {
+            for (int x=0; x<mapSize.x; x++) {
+                Color color = pixels[y * static_cast<int>(mapSize.x) + x];
+                float brightness = color.r / 255.0f;
+                Vector2 pos{startingPt.x+x*width, startingPt.y+y*width};
+                if (brightness < 0.4f || y==0) { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt1"))); }
+                else { addBlock(std::make_shared<Dirt>(pos, TextureManager::getTexture("dirt2"))); }
             }
         }
+        UnloadImage(noiseImg);
+        UnloadImageColors(pixels);
     }
 
 private:
@@ -84,12 +98,9 @@ int main() {
     SetTargetFPS(60);
     Game game;
     Camera2D camera = { 0 };
-    camera.zoom = 2.0f;
+    camera.zoom = 1.0f;
     TextureManager::loadTexture("dirt1", "images/dirt1.png");
     TextureManager::loadTexture("dirt2", "images/dirt2.png");
-    // game.addBlock(std::make_shared<Dirt>(Vector2{158, 300}, TextureManager::getTexture("dirt1"))); //?
-    // game.addBlock(std::make_shared<Dirt>(Vector2{140, 300}, TextureManager::getTexture("dirt1")));
-    // game.addBlock(std::make_shared<Dirt>(Vector2{170, 300}, TextureManager::getTexture("dirt1")));
     game.renderMap();
 
 
@@ -99,7 +110,6 @@ int main() {
         BeginDrawing();
         BeginMode2D(camera);
         ClearBackground(background);
-        DrawTexture(TextureManager::getTexture("dirt2"), 100, 200, WHITE);
 
         game.update();
         game.draw();

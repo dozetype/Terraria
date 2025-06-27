@@ -2,13 +2,13 @@
 
 
 void Player::draw() const {
-    DrawCircle(pos.x, pos.y, 30, {255,255,255,255});
+    DrawCircle(pos.x, pos.y, 10, {255,255,255,255});
 }
 void Player::moveLeft() {
-    pos.x -= 3;
+    pos.x -= 1;
 }
 void Player::moveRight() {
-    pos.x += 3;
+    pos.x += 1;
 }
 void Player::externalForce(const Vector2 force) {
     pos.x += force.x;
