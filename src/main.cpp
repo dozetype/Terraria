@@ -33,20 +33,32 @@ class Game {
 public:
     void update() {
         player.setXVel(0);
-        player.setYVel(2);
+        player.setYVel(GRAVITY);
 
         handleInput();
         checkForCollisions();
         player.update();
     }
 
-    void draw() const {
+    void draw(const float zoom) const {
         player.draw();
-        for (auto& tile: tiles) {
-            if (tile) {
-                tile->draw();
+
+        Vector2 playerPos = player.getPos();
+        const int startY = (playerPos.y-GetScreenHeight()/zoom/2) / TILE_SIZE;
+        const int endY = (playerPos.y+GetScreenHeight()/zoom/2) / TILE_SIZE;
+        const int startX = (playerPos.x-GetScreenWidth()/zoom/2) / TILE_SIZE;
+        const int endX = (playerPos.x+GetScreenWidth()/zoom/2) / TILE_SIZE;
+        int counter{};
+        for (int y=startY; y<=endY; y++) {
+            for (int x=startX; x<=endX; x++) {
+                auto& tile = tiles[y*(MAP_X/TILE_SIZE) + x];
+                if (tile) {
+                    tile->draw();
+                    counter++;
+                }
             }
         }
+
     }
 
     void handleInput() {
@@ -123,9 +135,9 @@ public:
                 int dy = y - startY;
                 if (dx*dx + dy*dy > radius*radius){ continue; } // outside
 
-                int tileX = x / TILE_SIZE;
-                int tileY = y / TILE_SIZE;
-                int index = tileY * (MAP_X / TILE_SIZE) + tileX;
+                const int tileX = x / TILE_SIZE;
+                const int tileY = y / TILE_SIZE;
+                const int index = tileY * (MAP_X / TILE_SIZE) + tileX;
                 auto& tile = tiles[index];
                 if (tile && CheckCollisionRecs(playerRec, tile->getRec())) {
                     float dx = (playerRec.x + playerRec.width / 2) - (tile->getX() + 8 / 2);
@@ -166,7 +178,7 @@ int main() {
     SetTargetFPS(60);
     Game game;
     Camera2D camera = { 0 };
-    camera.zoom = 1.0f;
+    camera.zoom = 4.0f;
     camera.offset = { windowWidth / 2.0f, windowHeight / 2.0f };
 
     TextureManager::loadTexture("dirt1", "images/dirt1.png");
@@ -185,7 +197,7 @@ int main() {
         BeginMode2D(camera);
         ClearBackground(background);
 
-        game.draw();
+        game.draw(camera.zoom);
 
         EndMode2D();
         EndDrawing();
