@@ -5,6 +5,11 @@
 #include "Player.h"
 #include "TextureManager.h"
 
+
+/**
+ * Blueprint of a tile
+ * TODO: adding durability
+ */
 class Tile {
 public:
     Tile(const Vector2 pos, const Texture2D &image)
@@ -16,12 +21,14 @@ public:
     Rectangle getRec() const { return {pos.x, pos.y, TILE_SIZE, TILE_SIZE}; }
     int getX() const {return pos.x; }
     int getY() const { return pos.y; }
-
 private:
     Vector2 pos;
     Texture2D image;
 };
 
+/**
+ * Basic Dirt block
+ */
 class Dirt:public Tile {
 public:
     Dirt(const Vector2 pos, const Texture2D &image)
@@ -29,6 +36,10 @@ public:
     // ~Dirt() {}
 };
 
+/**
+ * The class that will be handling all things in the game
+ * TODO: refine collision detection
+ */
 class Game {
 public:
     void update() {
@@ -43,7 +54,7 @@ public:
     void draw(const float zoom) const {
         player.draw();
 
-        Vector2 playerPos = player.getPos();
+        Vector2 playerPos = player.getPos(); //Getting index of tiles to draw
         const int startY = (playerPos.y-GetScreenHeight()/zoom/2) / TILE_SIZE;
         const int endY = (playerPos.y+GetScreenHeight()/zoom/2) / TILE_SIZE;
         const int startX = (playerPos.x-GetScreenWidth()/zoom/2) / TILE_SIZE;
@@ -80,10 +91,10 @@ public:
         constexpr int rows = MAP_Y / TILE_SIZE;
         std::vector<int> heightMap(columns);
         // NOISE1: MAP NOISE
-        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 9.0f);
+        const Image noiseImg = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 5.0f);
         Color* pixels = LoadImageColors(noiseImg);
         // NOISE2: HEIGHT NOISE
-        const Image noiseImg2 = GenImagePerlinNoise(MAP_X, MAP_Y, 0, 0, 8.f); //INCREASE FOR SPARSITY
+        const Image noiseImg2 = GenImagePerlinNoise(MAP_X, MAP_Y, 100, 100, 10.0f); //INCREASE FOR SPARSITY
         Color* pixels2 = LoadImageColors(noiseImg2);
 
         for (int x = 0; x < columns; x++) {
@@ -125,9 +136,8 @@ public:
         const int endX   = playerRec.x + playerRec.width;
         const int startY = playerRec.y;
         const int endY   = playerRec.y + playerRec.height;
-
-        int radius = 16;
-
+        constexpr int radius = 16;
+        //Only scanning for Collision around the player
         for (int y=startY-radius; y<=endY+radius; y+=8) {
             for (int x=startX-radius; x<=endX+radius; x+=8) {
                 if (x<0 || y<0 || x>=MAP_X || y>=MAP_Y) continue;
